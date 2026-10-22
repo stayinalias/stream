@@ -28,8 +28,12 @@ async function executeCinemetaCatalogQuery() {
     statusAlert.innerText = "Searching global databases... Please wait.";
     gridRoot.innerHTML = "";
 
+    // Added a secure CORS Proxy Gateway to bypass browser cross-origin blocks
+    const targetApiUrl = `https://strem.io{encodeURIComponent(searchString)}.json`;
+    const proxiedUrl = `https://corsproxy.io{encodeURIComponent(targetApiUrl)}`;
+
     try {
-        const response = await fetch(`https://strem.io{encodeURIComponent(searchString)}.json`);
+        const response = await fetch(proxiedUrl);
         const dataPayload = await response.json();
 
         if (dataPayload && dataPayload.metas && dataPayload.metas.length > 0) {
@@ -73,12 +77,16 @@ async function processSelectedTitle(imdbId) {
     infoMessageBox.className = "ui-notification notification-warn";
     infoMessageBox.innerText = "Resolving platform stream pathways...";
 
+    // Added the secure CORS Proxy to the stream resolution pipeline as well
+    const targetStreamUrl = `https://strem.fun{imdbId}.json`;
+    const proxiedStreamUrl = `https://corsproxy.io{encodeURIComponent(targetStreamUrl)}`;
+
     try {
-        const response = await fetch(`https://strem.fun{imdbId}.json`);
+        const response = await fetch(proxiedStreamUrl);
         const payload = await response.json();
         
         if (payload && payload.streams && payload.streams.length > 0) {
-            const topStream = payload.streams[0];
+            const topStream = payload.streams[0]; // Isolate first functional stream result
             let resolvedUri = topStream.url;
             if (topStream.infoHash) {
                 resolvedUri = `magnet:?xt=urn:btih:${topStream.infoHash}`;
@@ -118,5 +126,5 @@ function triggerSafeDownloadTunnelPipeline() {
 }
 
 function updateServerStatusDisplay() {
-    // Dropdown structural placeholder
+    // Dropdown structural configuration placeholder
 }
