@@ -5,16 +5,13 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>METASTREAM Multi-Cluster Dashboard</title>
-    <link rel="stylesheet" href="https://cloudflare.com">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://jsdelivr.net"></script>
-    <script id="webtor-sdk" src="https://webtor.io" charset="utf-8" async></script>
 </head>
 <body>
 
     <div class="background-atmosphere-layer" id="dynamic-blur-backdrop"></div>
 
-    <div class="app-shell-container animate__animated animate__fadeIn">
+    <div class="app-shell-container">
         <header class="dashboard-header">
             <h1 class="brand-logo">META<span>STREAM</span></h1>
             <nav class="navigation-hub">
@@ -26,56 +23,62 @@
         </header>
 
         <main class="workspace-viewport">
-            <section id="explore-viewport" class="tab-panel view-visible animate__animated animate__fadeIn">
-                <div class="glass-container grid-panel">
+            <section id="explore-viewport" class="tab-panel view-visible">
+                <div class="glass-container">
                     <div class="search-engine-row">
-                        <input type="text" id="catalog-keyword-search" placeholder="Enter movie or TV series keywords (e.g., Batman, Interstellar, Breaking Bad)..." onkeyup="evaluateSearchInputTrigger(event)">
+                        <input type="text" id="catalog-keyword-search" placeholder="Enter movie or TV series title (e.g. Fight Club, Batman)...">
                         <button class="action-trigger-btn" onclick="executeCinemetaCatalogQuery()">Search Index</button>
                     </div>
-                    <div id="search-status-alert" class="ui-notification notification-neutral">Awaiting search entry parameters...</div>
+                    <div id="search-status-alert" class="ui-notification notification-neutral">Awaiting search parameters...</div>
                     <div class="catalog-grid-mount" id="explore-grid-root"></div>
                 </div>
             </section>
 
-            <section id="stream-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
-                <div class="glass-container stream-panel">
+            <section id="stream-viewport" class="tab-panel view-hidden">
+                <div class="glass-container">
                     <div class="playback-routing-card">
-                        <div class="routing-headline-meta"><span>Playback issues? Try another server.</span></div>
+                        <div class="routing-headline-meta"><span>Active Server Pipeline Hub</span></div>
                         <div class="routing-dropdown-wrapper">
                             <span class="status-marker-dot marker-green" id="active-route-indicator"></span>
-                            <select id="server-gateway-selector" onchange="hotSwapActiveStreamServerRoute()">
-                                <option value="http://localhost:11470" data-status="green">Streaming-Server-1 (Primary)</option>
-                                <option value="http://localhost:11471" data-status="green">Streaming-Server-2 (Failover)</option>
-                                <option value="https://strem.fun" data-status="orange">Torrentio Engine</option>
-                                <option value="https://elfhosted.com" data-status="red">Comet Proxy</option>
+                            <select id="server-gateway-selector" onchange="updateServerStatusDisplay()">
+                                <option value="https://strem.fun">Multi-Server Cluster Hub 1 (Online)</option>
+                                <option value="https://elfhosted.com">Multi-Server Cluster Hub 2 (Backup)</option>
                             </select>
                         </div>
                     </div>
                     <div class="input-row-inline">
-                        <input type="text" id="manual-magnet-input" placeholder="Manually input active cryptographic magnet streaming path...">
-                        <button class="action-trigger-btn" onclick="initializeManualStreamPipeline()">Mount Link</button>
+                        <input type="text" id="manual-magnet-input" placeholder="Paste cryptographic magnet streaming hash link here...">
+                        <button class="action-trigger-btn" onclick="initializeManualStreamPipeline()">Stream Externally</button>
                     </div>
-                    <div id="player-status-message" class="ui-notification notification-neutral">System Idle: Run a catalog lookup.</div>
-                    <div class="video-canvas-container"><div id="webtor-player-target"></div><video id="web-video-player" controls autoplay style="display:none; width:100%; height:100%;"></video></div>
-                    <div id="meta-catalog-card" class="metadata-card-hidden">
-                        <img id="meta-poster" src="" alt="Poster"><div class="meta-details"><h2 id="meta-title">Selected Title</h2><p id="meta-description">Awaiting payload...</p><div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast index</span></div></div>
-                    </div>
+                    <div id="player-status-message" class="ui-notification notification-neutral">Ready. Run a title lookup inside the Explore view.</div>
                 </div>
             </section>
 
-            <section id="download-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
-                <div class="glass-container text-panel-centered">
+            <section id="download-viewport" class="tab-panel view-hidden">
+                <div class="glass-container">
                     <h2>Direct Remux-to-MP4 Processing Tunnel</h2>
-                    <div class="input-row-inline"><input type="text" id="tunnel-magnet-input" placeholder="magnet:?xt=urn:btih:..."><button class="action-trigger-btn cta-variant" onclick="triggerSafeDownloadTunnelPipeline()">Process & Download MP4</button></div>
+                    <p class="section-description">Launches cloud processing engines to securely transform torrent tracks into static downloadable MP4 streaming containers.</p>
+                    <div class="input-row-inline">
+                        <input type="text" id="tunnel-magnet-input" placeholder="magnet:?xt=urn:btih:...">
+                        <button class="action-trigger-btn" onclick="triggerSafeDownloadTunnelPipeline()">Convert to MP4</button>
+                    </div>
                     <div id="download-status-box" class="ui-notification notification-warn">System Idle.</div>
                 </div>
             </section>
 
-            <section id="metrics-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
-                <div class="glass-container text-panel-centered"><h2>Multi-Server Failover Routing Architecture</h2><div class="infrastructure-stack-list"><div class="cluster-node-row node-online"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-1 (Primary)</strong><small>Nginx Target Route</small></div><span class="status-badge label-success">ONLINE / 14%</span></div></div></div>
+            <section id="metrics-viewport" class="tab-panel view-hidden">
+                <div class="glass-container">
+                    <h2>Multi-Server Failover Routing Architecture</h2>
+                    <p class="section-description">Active cloud delivery status diagnostics for platform container clusters.</p>
+                    <div class="cluster-node-row node-online">
+                        <span class="cluster-indicator"></span>
+                        <strong>Cluster Gateway Node (Proxy Hub Nginx) — ONLINE (14% Load)</strong>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
