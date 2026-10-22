@@ -2,101 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>METASTREAM Premium Dashboard</title>
-    <!-- Core Visual Framework Animations Loaded Directly via CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <title>METASTREAM Multi-Cluster Dashboard</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
     <link rel="stylesheet" href="styles.css">
-    <!-- Browser-level torrent engine framework -->
-    <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script id="webtor-sdk" src="https://webtor.io" charset="utf-8" async></script>
 </head>
 <body>
 
-    <div class="bg-gradient-overlay"></div>
+    <div class="background-atmosphere-layer" id="dynamic-blur-backdrop"></div>
 
-    <div class="app-container animate__animated animate__fadeIn">
-        <header class="app-header">
-            <h1 class="logo">META<span>STREAM</span></h1>
-            <nav class="navigation-bar">
-                <button class="nav-link active" onclick="switchTab('player')">Media Player</button>
-                <button class="nav-link" onclick="switchTab('download')">Safe Download Tunnel</button>
-                <button class="nav-link" onclick="switchTab('status')">Cluster Metrics</button>
+    <div class="app-shell-container animate__animated animate__fadeIn">
+        <header class="dashboard-header">
+            <h1 class="brand-logo">META<span>STREAM</span></h1>
+            <nav class="navigation-hub">
+                <button class="nav-tab active" onclick="navigateDashboardTabs('explore')">Explore</button>
+                <button class="nav-tab" onclick="navigateDashboardTabs('stream')">Stream</button>
+                <button class="nav-tab" onclick="navigateDashboardTabs('download')">Safe Download</button>
+                <button class="nav-tab" onclick="navigateDashboardTabs('metrics')">Metrics</button>
             </nav>
         </header>
 
-        <main class="viewport-area">
-            <!-- View Module 1: Native HTML5 Streaming Video Node + Catalog Metadata Engine -->
-            <section id="player-tab" class="tab-module active-view animate__animated animate__fadeInRight">
-                <div class="content-panel player-panel">
-                    <div class="input-row">
-                        <input type="text" id="stream-magnet-input" placeholder="Paste movie magnet streaming link here...">
-                        <input type="text" id="imdb-id-input" placeholder="Optional IMDb ID (e.g., tt0137523)" style="max-width: 240px;">
-                        <button class="cta-button" onclick="startInlineStream()">Stream Instantly</button>
+        <main class="workspace-viewport">
+            <!-- Tab Module 1: Keyword Catalog Browser -->
+            <section id="explore-viewport" class="tab-panel view-visible animate__animated animate__fadeIn">
+                <div class="glass-container grid-panel">
+                    <div class="search-engine-row">
+                        <input type="text" id="catalog-keyword-search" placeholder="Enter movie or TV series keywords (e.g., Batman, Interstellar, Breaking Bad)..." onkeyup="evaluateSearchInputTrigger(event)">
+                        <button class="action-trigger-btn" onclick="executeCinemetaCatalogQuery()">Search Index</button>
                     </div>
-                    <div id="player-status-message" class="status-alert info">Ready to stream. Paste an active magnet path link above and click play.</div>
+                    <div id="search-status-alert" class="ui-notification notification-neutral">Awaiting search entry parameters...</div>
                     
-                    <div class="player-wrapper">
-                        <video id="web-video-player" controls autoplay></video>
+                    <div class="catalog-grid-mount" id="explore-grid-root"></div>
+                </div>
+            </section>
+
+            <!-- Tab Module 2: Video Player Canvas & Multi-Server Route Overlay -->
+            <section id="stream-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
+                <div class="glass-container stream-panel">
+                    <!-- High Availability Route Selector Box -->
+                    <div class="playback-routing-card">
+                        <div class="routing-headline-meta">
+                            <span>Playback issues? Try another server.</span>
+                        </div>
+                        <div class="routing-dropdown-wrapper">
+                            <span class="status-marker-dot marker-green" id="active-route-indicator"></span>
+                            <select id="server-gateway-selector" onchange="hotSwapActiveStreamServerRoute()">
+                                <option value="http://localhost:11470" data-status="green">Streaming-Server-1 (Primary) — Best sync</option>
+                                <option value="http://localhost:11471" data-status="green">Streaming-Server-2 (Failover) — Ads free</option>
+                                <option value="https://strem.fun" data-status="orange">Torrentio Engine — Auto-switching</option>
+                                <option value="https://elfhosted.com" data-status="red">Comet Proxy — Not working</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Dynamic Meta Catalog Card Display Wrapper -->
+                    <div class="input-row-inline">
+                        <input type="text" id="manual-magnet-input" placeholder="Manually input active cryptographic magnet streaming path...">
+                        <button class="action-trigger-btn" onclick="initializeManualStreamPipeline()">Mount Link</button>
+                    </div>
+                    <div id="player-status-message" class="ui-notification notification-neutral">System Idle: Use the Explore panel or paste a link to launch rendering engine loops.</div>
+                    
+                    <div class="video-canvas-container">
+                        <div id="webtor-player-target"></div>
+                        <video id="web-video-player" controls autoplay style="display:none; width:100%; height:100%;"></video>
+                    </div>
+
                     <div id="meta-catalog-card" class="metadata-card-hidden">
-                        <img id="meta-poster" src="" alt="Movie Poster">
+                        <img id="meta-poster" src="" alt="Catalog Poster">
                         <div class="meta-details">
-                            <h2 id="meta-title">Movie Title</h2>
-                            <p id="meta-description">Description overview loading...</p>
-                            <div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast details</span></div>
+                            <h2 id="meta-title">Selected Title</h2>
+                            <p id="meta-description">Awaiting content mapping...</p>
+                            <div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast index parameters</span></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- View Module 2: Direct Remux-to-MP4 Processing Pipeline -->
-            <section id="download-tab" class="tab-module hidden-view animate__animated animate__fadeInRight">
-                <div class="content-panel text-panel">
+            <!-- Tab Module 3: Remux Download Controller -->
+            <section id="download-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
+                <div class="glass-container text-panel-centered">
                     <h2>Direct Remux-to-MP4 Processing Tunnel</h2>
-                    <p class="description">Input a magnet link below to convert data streams and trigger a browser download from host origin. Zero external redirects or interstitial pop-up landing pages.</p>
-                    <div class="input-row">
+                    <p class="section-description">Transforms incoming torrent buffers cleanly into standard playable MP4 file containers on the fly without encoding quality drop. Zero redirects or commercial interstitial delays.</p>
+                    <div class="input-row-inline">
                         <input type="text" id="tunnel-magnet-input" placeholder="magnet:?xt=urn:btih:...">
-                        <button class="cta-button variant" onclick="triggerSafeDownload()">Process & Download MP4</button>
+                        <button class="action-trigger-btn cta-variant" onclick="triggerSafeDownloadTunnelPipeline()">Process & Download MP4</button>
                     </div>
-                    <div id="download-status-box" class="status-alert waiting">System Idle: Awaiting direct target container input link...</div>
+                    <div id="download-status-box" class="ui-notification notification-warn">System Idle: Input a link target signature above to execute transcoding scripts.</div>
                 </div>
             </section>
 
-            <!-- View Module 3: Failover Architecture Topology Panel -->
-            <section id="status-tab" class="tab-module hidden-view animate__animated animate__fadeInRight">
-                <div class="content-panel text-panel">
+            <!-- Tab Module 4: Infrastructure Dashboard Metrics -->
+            <section id="metrics-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
+                <div class="glass-container text-panel-centered">
                     <h2>Multi-Server Failover Routing Architecture</h2>
-                    <p class="description">Live network topology load balancing health array metrics for continuous platform stream delivery.</p>
-                    
-                    <div class="infrastructure-stack">
-                        <div class="node-row state-online">
-                            <span class="indicator-dot"></span>
-                            <div class="node-meta">
-                                <strong>Streaming-Server-1 (Primary Node)</strong>
-                                <small>Nginx Target Route: Active Peer Hub</small>
-                            </div>
-                            <span class="badge label-success">ONLINE / 14% LOAD</span>
-                        </div>
-
-                        <div class="node-row state-standby">
-                            <span class="indicator-dot"></span>
-                            <div class="node-meta">
-                                <strong>Streaming-Server-2 (Failover Resiliency Node)</strong>
-                                <small>Nginx Target Route: Upstream Standby Sync</small>
-                            </div>
-                            <span class="badge label-warning">STANDBY / 0% LOAD</span>
-                        </div>
-
-                        <div class="node-row state-processing">
-                            <span class="indicator-dot blinking"></span>
-                            <div class="node-meta">
-                                <strong>FFmpeg Container Transcode Engine</strong>
-                                <small>Status Channel: Sequential Remux Buffer</small>
-                            </div>
-                            <span class="badge label-info">PIPELINE ACTIVE</span>
-                        </div>
+                    <p class="section-description">Live structural tracking array loops for clustered server resource nodes.</p>
+                    <div class="infrastructure-stack-list">
+                        <div class="cluster-node-row node-online"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-1 (Primary Node)</strong><small>Nginx Target Route: Active Peer Hub</small></div><span class="status-badge label-success">ONLINE / 14% LOAD</span></div>
+                        <div class="cluster-node-row node-standby"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-2 (Failover Resiliency Node)</strong><small>Nginx Target Route: Upstream Standby Sync</small></div><span class="status-badge label-warning">STANDBY / 0% LOAD</span></div>
+                        <div class="cluster-node-row node-processing"><span class="cluster-indicator blinking-element"></span><div class="node-profile"><strong>FFmpeg Container Transcode Engine</strong><small>Status Channel: Sequential Remux Buffer</small></div><span class="status-badge label-info">PIPELINE ACTIVE</span></div>
                     </div>
                 </div>
             </section>
