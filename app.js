@@ -28,13 +28,16 @@ async function executeCinemetaCatalogQuery() {
     statusAlert.innerText = "Searching global databases... Please wait.";
     gridRoot.innerHTML = "";
 
-    // Added a secure CORS Proxy Gateway to bypass browser cross-origin blocks
+    // Swapped to a highly stable, completely open-source browser-safe proxy engine
     const targetApiUrl = `https://strem.io{encodeURIComponent(searchString)}.json`;
-    const proxiedUrl = `https://corsproxy.io{encodeURIComponent(targetApiUrl)}`;
+    const proxiedUrl = `https://allorigins.win{encodeURIComponent(targetApiUrl)}`;
 
     try {
         const response = await fetch(proxiedUrl);
-        const dataPayload = await response.json();
+        const wrapperPayload = await response.json();
+        
+        // AllOrigins wraps the data inside a .contents string, so we must parse it back into JSON objects
+        const dataPayload = JSON.parse(wrapperPayload.contents);
 
         if (dataPayload && dataPayload.metas && dataPayload.metas.length > 0) {
             statusAlert.className = "ui-notification notification-run";
@@ -77,16 +80,17 @@ async function processSelectedTitle(imdbId) {
     infoMessageBox.className = "ui-notification notification-warn";
     infoMessageBox.innerText = "Resolving platform stream pathways...";
 
-    // Added the secure CORS Proxy to the stream resolution pipeline as well
     const targetStreamUrl = `https://strem.fun{imdbId}.json`;
-    const proxiedStreamUrl = `https://corsproxy.io{encodeURIComponent(targetStreamUrl)}`;
+    const proxiedStreamUrl = `https://allorigins.win{encodeURIComponent(targetStreamUrl)}`;
 
     try {
         const response = await fetch(proxiedStreamUrl);
-        const payload = await response.json();
+        const wrapperPayload = await response.json();
+        
+        const payload = JSON.parse(wrapperPayload.contents);
         
         if (payload && payload.streams && payload.streams.length > 0) {
-            const topStream = payload.streams[0]; // Isolate first functional stream result
+            const topStream = payload.streams[0]; // Isolate the first active video option cleanly
             let resolvedUri = topStream.url;
             if (topStream.infoHash) {
                 resolvedUri = `magnet:?xt=urn:btih:${topStream.infoHash}`;
@@ -126,5 +130,5 @@ function triggerSafeDownloadTunnelPipeline() {
 }
 
 function updateServerStatusDisplay() {
-    // Dropdown structural configuration placeholder
+    // Structural proxy configuration handler
 }
