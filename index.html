@@ -25,16 +25,28 @@
         </header>
 
         <main class="viewport-area">
-            <!-- View Module 1: Native HTML5 Streaming Video Node -->
+            <!-- View Module 1: Native HTML5 Streaming Video Node + Catalog Metadata Engine -->
             <section id="player-tab" class="tab-module active-view animate__animated animate__fadeInRight">
                 <div class="content-panel player-panel">
                     <div class="input-row">
                         <input type="text" id="stream-magnet-input" placeholder="Paste movie magnet streaming link here...">
+                        <input type="text" id="imdb-id-input" placeholder="Optional IMDb ID (e.g., tt0137523)" style="max-width: 240px;">
                         <button class="cta-button" onclick="startInlineStream()">Stream Instantly</button>
                     </div>
                     <div id="player-status-message" class="status-alert info">Ready to stream. Paste an active magnet path link above and click play.</div>
+                    
                     <div class="player-wrapper">
                         <video id="web-video-player" controls autoplay></video>
+                    </div>
+
+                    <!-- Dynamic Meta Catalog Card Display Wrapper -->
+                    <div id="meta-catalog-card" class="metadata-card-hidden">
+                        <img id="meta-poster" src="" alt="Movie Poster">
+                        <div class="meta-details">
+                            <h2 id="meta-title">Movie Title</h2>
+                            <p id="meta-description">Description overview loading...</p>
+                            <div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast details</span></div>
+                        </div>
                     </div>
                 </div>
             </section>
