@@ -7,6 +7,8 @@
     <!-- Core Visual Frameworks Loaded Directly via CDN -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <link rel="stylesheet" href="styles.css">
+    <!-- Load the native browser-level torrent streaming script engine -->
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
 
@@ -24,10 +26,16 @@
         </header>
 
         <main class="content-area">
-            <!-- Tab 1: Embedded Stremio Web Frontend Interface Engine -->
+            <!-- Tab 1: Native In-Browser Video Player Engine -->
             <section id="player-tab" class="tab-content active-content animate__animated animate__fadeInRight">
-                <div class="iframe-container">
-                    <iframe src="https://stremio.com" allow="autoplay; encrypted-media; fullscreen" frameborder="0"></iframe>
+                <div class="player-container-box">
+                    <div class="player-input-bar">
+                        <input type="text" id="stream-magnet-input" placeholder="Paste movie magnet link or stream hash here...">
+                        <button class="action-btn" onclick="startInlineStream()">Stream Instantly</button>
+                    </div>
+                    <div id="player-status" class="status-text">Ready to stream. Paste a link above and click play.</div>
+                    <!-- The actual video player context -->
+                    <video id="web-video-player" controls autoplay></video>
                 </div>
             </section>
 
