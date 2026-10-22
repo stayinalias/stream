@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Stream Dashboard</title>
+    <!-- Core Visual Frameworks Loaded Directly via CDN -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Sleek Animated Background Layer -->
+    <div class="bg-overlay"></div>
+
+    <div class="dashboard-wrapper animate__animated animate__fadeIn">
+        <header>
+            <h1 class="logo">META<span>STREAM</span></h1>
+            <nav class="tab-menu">
+                <button class="tab-btn active" onclick="switchTab('player')">Media Player</button>
+                <button class="tab-btn" onclick="switchTab('download')">Safe Download Tunnel</button>
+                <button class="tab-btn" onclick="switchTab('status')">Multi-Server Cluster Status</button>
+            </nav>
+        </header>
+
+        <main class="content-area">
+            <!-- Tab 1: Embedded Stremio Web Frontend Interface Engine -->
+            <section id="player-tab" class="tab-content active-content animate__animated animate__fadeInRight">
+                <div class="iframe-container">
+                    <iframe src="https://stremio.com" allow="autoplay; encrypted-media; fullscreen" frameborder="0"></iframe>
+                </div>
+            </section>
+
+            <!-- Tab 2: Direct Remux-to-MP4 Tunnel Controller Interface -->
+            <section id="download-tab" class="tab-content hidden animate__animated animate__fadeInRight">
+                <div class="card-panel">
+                    <h2>Direct Remux-to-MP4 Processing Tunnel</h2>
+                    <p>Input a magnet link or stream source below to convert and download directly to your browser with zero sketchy redirects.</p>
+                    <div class="input-group">
+                        <input type="text" id="magnet-input" placeholder="magnet:?xt=urn:btih:...">
+                        <button class="action-btn" onclick="triggerSafeDownload()">Process & Download MP4</button>
+                    </div>
+                    <div id="download-status" class="status-box waiting">System Idle: Awaiting direct streaming input link...</div>
+                </div>
+            </section>
+
+            <!-- Tab 3: High-Availability Server Load Balancer Live Metrics -->
+            <section id="status-tab" class="tab-content hidden animate__animated animate__fadeInRight">
+                <div class="card-panel">
+                    <h2>Multi-Server Failover Routing Architecture</h2>
+                    <p>Live health monitoring wrapper metrics for underlying streaming node configurations.</p>
+                    <div class="server-grid">
+                        <div class="server-node online">
+                            <div class="status-indicator"></div>
+                            <span>Streaming-Server-1 (Primary Node)</span>
+                            <small>Status: ONLINE | Load: 14%</small>
+                        </div>
+                        <div class="server-node online">
+                            <div class="status-indicator"></div>
+                            <span>Streaming-Server-2 (Failover Resiliency Node)</span>
+                            <small>Status: STANDBY | Load: 0%</small>
+                        </div>
+                        <div class="server-node processing">
+                            <div class="status-indicator animate-pulse"></div>
+                            <span>FFmpeg Container Transcode Engine</span>
+                            <small>Status: PIPELINE ACTIVE | Remux Thread: Idle</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
