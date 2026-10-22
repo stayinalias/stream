@@ -18,15 +18,14 @@
         <header class="dashboard-header">
             <h1 class="brand-logo">META<span>STREAM</span></h1>
             <nav class="navigation-hub">
-                <button class="nav-tab active" onclick="navigateDashboardTabs('explore')">Explore</button>
-                <button class="nav-tab" onclick="navigateDashboardTabs('stream')">Stream</button>
-                <button class="nav-tab" onclick="navigateDashboardTabs('download')">Safe Download</button>
-                <button class="nav-tab" onclick="navigateDashboardTabs('metrics')">Metrics</button>
+                <button class="nav-tab active" id="btn-explore" onclick="switchTab('explore')">Explore</button>
+                <button class="nav-tab" id="btn-stream" onclick="switchTab('stream')">Stream</button>
+                <button class="nav-tab" id="btn-download" onclick="switchTab('download')">Safe Download</button>
+                <button class="nav-tab" id="btn-metrics" onclick="switchTab('metrics')">Metrics</button>
             </nav>
         </header>
 
         <main class="workspace-viewport">
-            <!-- Tab Module 1: Keyword Catalog Browser -->
             <section id="explore-viewport" class="tab-panel view-visible animate__animated animate__fadeIn">
                 <div class="glass-container grid-panel">
                     <div class="search-engine-row">
@@ -34,80 +33,49 @@
                         <button class="action-trigger-btn" onclick="executeCinemetaCatalogQuery()">Search Index</button>
                     </div>
                     <div id="search-status-alert" class="ui-notification notification-neutral">Awaiting search entry parameters...</div>
-                    
                     <div class="catalog-grid-mount" id="explore-grid-root"></div>
                 </div>
             </section>
 
-            <!-- Tab Module 2: Video Player Canvas & Multi-Server Route Overlay -->
             <section id="stream-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
                 <div class="glass-container stream-panel">
-                    <!-- High Availability Route Selector Box -->
                     <div class="playback-routing-card">
-                        <div class="routing-headline-meta">
-                            <span>Playback issues? Try another server.</span>
-                        </div>
+                        <div class="routing-headline-meta"><span>Playback issues? Try another server.</span></div>
                         <div class="routing-dropdown-wrapper">
                             <span class="status-marker-dot marker-green" id="active-route-indicator"></span>
                             <select id="server-gateway-selector" onchange="hotSwapActiveStreamServerRoute()">
-                                <option value="http://localhost:11470" data-status="green">Streaming-Server-1 (Primary) — Best sync</option>
-                                <option value="http://localhost:11471" data-status="green">Streaming-Server-2 (Failover) — Ads free</option>
-                                <option value="https://strem.fun" data-status="orange">Torrentio Engine — Auto-switching</option>
-                                <option value="https://elfhosted.com" data-status="red">Comet Proxy — Not working</option>
+                                <option value="http://localhost:11470" data-status="green">Streaming-Server-1 (Primary)</option>
+                                <option value="http://localhost:11471" data-status="green">Streaming-Server-2 (Failover)</option>
+                                <option value="https://strem.fun" data-status="orange">Torrentio Engine</option>
+                                <option value="https://elfhosted.com" data-status="red">Comet Proxy</option>
                             </select>
                         </div>
                     </div>
-
                     <div class="input-row-inline">
                         <input type="text" id="manual-magnet-input" placeholder="Manually input active cryptographic magnet streaming path...">
                         <button class="action-trigger-btn" onclick="initializeManualStreamPipeline()">Mount Link</button>
                     </div>
-                    <div id="player-status-message" class="ui-notification notification-neutral">System Idle: Use the Explore panel or paste a link to launch rendering engine loops.</div>
-                    
-                    <div class="video-canvas-container">
-                        <div id="webtor-player-target"></div>
-                        <video id="web-video-player" controls autoplay style="display:none; width:100%; height:100%;"></video>
-                    </div>
-
+                    <div id="player-status-message" class="ui-notification notification-neutral">System Idle: Run a catalog lookup.</div>
+                    <div class="video-canvas-container"><div id="webtor-player-target"></div><video id="web-video-player" controls autoplay style="display:none; width:100%; height:100%;"></video></div>
                     <div id="meta-catalog-card" class="metadata-card-hidden">
-                        <img id="meta-poster" src="" alt="Catalog Poster">
-                        <div class="meta-details">
-                            <h2 id="meta-title">Selected Title</h2>
-                            <p id="meta-description">Awaiting content mapping...</p>
-                            <div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast index parameters</span></div>
-                        </div>
+                        <img id="meta-poster" src="" alt="Poster"><div class="meta-details"><h2 id="meta-title">Selected Title</h2><p id="meta-description">Awaiting payload...</p><div class="meta-cast-box"><strong>Starring:</strong> <span id="meta-cast">Cast index</span></div></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Tab Module 3: Remux Download Controller -->
             <section id="download-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
                 <div class="glass-container text-panel-centered">
                     <h2>Direct Remux-to-MP4 Processing Tunnel</h2>
-                    <p class="section-description">Transforms incoming torrent buffers cleanly into standard playable MP4 file containers on the fly without encoding quality drop. Zero redirects or commercial interstitial delays.</p>
-                    <div class="input-row-inline">
-                        <input type="text" id="tunnel-magnet-input" placeholder="magnet:?xt=urn:btih:...">
-                        <button class="action-trigger-btn cta-variant" onclick="triggerSafeDownloadTunnelPipeline()">Process & Download MP4</button>
-                    </div>
-                    <div id="download-status-box" class="ui-notification notification-warn">System Idle: Input a link target signature above to execute transcoding scripts.</div>
+                    <div class="input-row-inline"><input type="text" id="tunnel-magnet-input" placeholder="magnet:?xt=urn:btih:..."><button class="action-trigger-btn cta-variant" onclick="triggerSafeDownloadTunnelPipeline()">Process & Download MP4</button></div>
+                    <div id="download-status-box" class="ui-notification notification-warn">System Idle.</div>
                 </div>
             </section>
 
-            <!-- Tab Module 4: Infrastructure Dashboard Metrics -->
             <section id="metrics-viewport" class="tab-panel view-hidden animate__animated animate__fadeIn">
-                <div class="glass-container text-panel-centered">
-                    <h2>Multi-Server Failover Routing Architecture</h2>
-                    <p class="section-description">Live structural tracking array loops for clustered server resource nodes.</p>
-                    <div class="infrastructure-stack-list">
-                        <div class="cluster-node-row node-online"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-1 (Primary Node)</strong><small>Nginx Target Route: Active Peer Hub</small></div><span class="status-badge label-success">ONLINE / 14% LOAD</span></div>
-                        <div class="cluster-node-row node-standby"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-2 (Failover Resiliency Node)</strong><small>Nginx Target Route: Upstream Standby Sync</small></div><span class="status-badge label-warning">STANDBY / 0% LOAD</span></div>
-                        <div class="cluster-node-row node-processing"><span class="cluster-indicator blinking-element"></span><div class="node-profile"><strong>FFmpeg Container Transcode Engine</strong><small>Status Channel: Sequential Remux Buffer</small></div><span class="status-badge label-info">PIPELINE ACTIVE</span></div>
-                    </div>
-                </div>
+                <div class="glass-container text-panel-centered"><h2>Multi-Server Failover Routing Architecture</h2><div class="infrastructure-stack-list"><div class="cluster-node-row node-online"><span class="cluster-indicator"></span><div class="node-profile"><strong>Streaming-Server-1 (Primary)</strong><small>Nginx Target Route</small></div><span class="status-badge label-success">ONLINE / 14%</span></div></div></div>
             </section>
         </main>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
