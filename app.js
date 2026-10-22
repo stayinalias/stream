@@ -1,252 +1,273 @@
 let torrentEngineClient = new WebTorrent();
-
 const publicScrapeGateways = [
-    "https://torrentio.strem.fun/stream/",
-    "https://comet.elfhosted.com/stream/"
+    "https://strem.fun",
+    "https://elfhosted.com"
 ];
-
 let lastDiscoveredMagnetLink = "";
 
-function switchTab(targetTabId) {
-    document.querySelectorAll('.nav-link').forEach(linkButton => {
-        linkButton.classList.remove('active');
+// Handles high-performance view layer routing changes across tabs
+function navigateDashboardTabs(targetTabId) {
+    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('view-hidden');
+        panel.classList.remove('view-visible');
     });
 
-    document.querySelectorAll('.tab-module').forEach(viewPanel => {
-        viewPanel.classList.add('hidden-view');
-        viewPanel.classList.remove('active-view', 'animate__fadeInRight');
-    });
-
-    const activeNavButton = Array.from(document.querySelectorAll('.nav-link')).find(btn => 
-        btn.getAttribute('onclick').includes(`'${targetTabId}'`)
+    const activeNavButton = Array.from(document.querySelectorAll('.nav-link, .nav-tab')).find(btn => 
+        btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${targetTabId}'`)
     );
-    if (activeNavButton) {
-        activeNavButton.classList.add('active');
-    }
+    if (activeNavButton) activeNavButton.classList.add('active');
 
-    const selectedView = document.getElementById(`${targetTabId}-tab`);
+    const selectedView = document.getElementById(`${targetTabId}-viewport`);
     if (selectedView) {
-        selectedView.classList.remove('hidden-view');
-        void selectedView.offsetWidth;
-        selectedView.classList.add('active-view', 'animate__fadeInRight');
+        selectedView.classList.remove('view-hidden');
+        selectedView.classList.add('view-visible');
     }
 }
 
-async function loadDiscoverCatalog() {
-    const playerPanel = document.querySelector('.player-panel');
-    if (!playerPanel) return;
-    
-    const catalogContainer = document.createElement('div');
-    catalogContainer.className = 'discover-catalog-grid';
-    catalogContainer.innerHTML = '<h3 class="catalog-heading">Trending Discover Catalog (Movies & TV Series)</h3><div class="movie-grid" id="grid-mount"></div>';
-    playerPanel.appendChild(catalogContainer);
+// Intercepts key release events to trigger search execution upon enter input
+function evaluateSearchInputTrigger(eventInstance) {
+    if (eventInstance.key === 'Enter') {
+        executeCinemetaCatalogQuery();
+    }
+}
 
-    const gridMount = document.getElementById('grid-mount');
-    if (!gridMount) return;
-    
-    const trendingContentList = [
-        { id: "tt0137523", type: "movie", title: "Fight Club", year: "1999", poster: "https://images.metahash.space/poster/v2/137523.jpg" },
-        { id: "tt0468569", type: "movie", title: "The Dark Knight", year: "2008", poster: "https://images.metahash.space/poster/v2/468569.jpg" },
-        { id: "tt0903747", type: "series", title: "Breaking Bad", year: "TV Show", poster: "https://images.metahash.space/poster/v2/903747.jpg" },
-        { id: "tt0944947", type: "series", title: "Game of Thrones", year: "TV Show", poster: "https://images.metahash.space/poster/v2/944947.jpg" }
-    ];
+// Executes an unrestricted live keyword search via Stremio's Cinemeta directories
+async function executeCinemetaCatalogQuery() {
+    const searchString = document.getElementById('catalog-keyword-search').value.trim();
+    const statusAlert = document.getElementById('search-status-alert');
+    const gridRoot = document.getElementById('explore-grid-root');
 
-    trendingContentList.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.className = 'movie-discover-card animate__animated animate__fadeIn';
-        
-        let actionableControlsHTML = `<button class="catalog-stream-btn" onclick="autoScrapeAndPlay('${item.type}', '${item.id}')">Find Live Streams</button>`;
-        
-        if (item.type === "series") {
-            actionableControlsHTML = `
-                <div class="tv-selector-row">
-                    <select id="season-select-${item.id}" onchange="updateEpisodeDropdown('${item.id}')">
-                        <option value="1">Season 1</option>
-                        <option value="2">Season 2</option>
-                    </select>
-                    <select id="episode-select-${item.id}">
-                        <option value="1">Episode 1</option>
-                        <option value="2">Episode 2</option>
-                        <option value="3">Episode 3</option>
-                    </select>
-                </div>
-                <button class="catalog-stream-btn tv-btn" onclick="triggerTvScrape('${item.id}')">Stream Episode</button>
-            `;
+    if (!searchString) {
+        alert('Please append query text into the search engine panel.');
+        return;
+    }
+
+    statusAlert.className = "ui-notification notification-warn";
+    statusAlert.innerText = `Interrogating Cinemeta index databases for keyword phrase: "${searchString}"...`;
+    gridRoot.innerHTML = "";
+
+    try {
+        const response = await fetch(`https://strem.io{encodeURIComponent(searchString)}.json`);
+        const dataPayload = await response.json();
+
+        if (dataPayload && dataPayload.metas && dataPayload.metas.length > 0) {
+            statusAlert.className = "ui-notification notification-run";
+            statusAlert.innerText = `Search engine completed. Found ${dataPayload.metas.length} directory layout matches.`;
+
+            // Enable blur layer architecture container hooks
+            gridRoot.className = "catalog-grid-mount explore-grid-active";
+
+            dataPayload.metas.forEach(item => {
+                if (!item.poster) return;
+                const itemCard = document.createElement('div');
+                itemCard.className = 'movie-discover-card animate__animated animate__fadeIn';
+                
+                // Track backend item structure formats mapping to movies vs series
+                const verifiedType = item.type === "series" ? "series" : "movie";
+                let interactionControlsHTML = `<button class="catalog-stream-btn" onclick="directRouteToStreamTab('${verifiedType}', '${item.id}')">Select Title</button>`;
+                
+                if (verifiedType === "series") {
+                    interactionControlsHTML = `
+                        <div class="tv-selector-row">
+                            <select id="season-${item.id}" onchange="extendTelevisionEpisodeDropdownLimits('${item.id}')">
+                                <option value="1">Season 1</option><option value="2">Season 2</option>
+                            </select>
+                            <select id="episode-${item.id}">
+                                <option value="1">Episode 1</option><option value="2">Episode 2</option>
+                            </select>
+                        </div>
+                        <button class="catalog-stream-btn tv-btn" onclick="parseTvControlsAndRoute('${item.id}')">Select Episode</button>
+                    `;
+                }
+
+                itemCard.innerHTML = `<img src="${item.poster}" alt="${item.name}"><h4>${item.name}</h4><p>${item.year || 'N/A'}</p>${interactionControlsHTML}`;
+                
+                // Hot-swap backdrops dynamically during hover actions using blur nodes
+                itemCard.addEventListener('mouseenter', () => {
+                    const blurBackdrop = document.getElementById('dynamic-blur-backdrop');
+                    if (blurBackdrop && item.poster) {
+                        blurBackdrop.style.backgroundImage = `url('${item.poster}')`;
+                        blurBackdrop.style.filter = "blur(35px) brightness(0.25)";
+                    }
+                });
+
+                gridRoot.appendChild(itemCard);
+            });
+        } else {
+            statusAlert.className = "ui-notification notification-neutral";
+            statusAlert.innerText = "No database listings matched that search expression term.";
         }
-
-        itemCard.innerHTML = `
-            <img src="${item.poster}" alt="${item.title}">
-            <h4>${item.title}</h4>
-            <p>${item.year}</p>
-            ${actionableControlsHTML}
-        `;
-        gridMount.appendChild(itemCard);
-    });
-}
-
-function triggerTvScrape(seriesImdbId) {
-    const chosenSeason = document.getElementById(`season-select-${seriesImdbId}`).value;
-    const chosenEpisode = document.getElementById(`episode-select-${seriesImdbId}`).value;
-    autoScrapeAndPlay('series', seriesImdbId, chosenSeason, chosenEpisode);
-}
-
-function updateEpisodeDropdown(seriesId) {
-    const epDropdown = document.getElementById(`episode-select-${seriesId}`);
-    if (!epDropdown) return;
-    epDropdown.innerHTML = "";
-    
-    for (let i = 1; i <= 5; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = `Episode ${i}`;
-        epDropdown.appendChild(opt);
+    } catch (err) {
+        statusAlert.className = "ui-notification notification-neutral";
+        statusAlert.innerText = "Error executing catalog index query. Verify connection layers.";
+        console.error(err);
     }
 }
 
-async function autoScrapeAndPlay(contentType, imdbId, season = null, episode = null) {
+function parseTvControlsAndRoute(seriesId) {
+    const s = document.getElementById(`season-${seriesId}`).value;
+    const e = document.getElementById(`episode-${seriesId}`).value;
+    directRouteToStreamTab('series', seriesId, s, e);
+}
+
+function extendTelevisionEpisodeDropdownLimits(seriesId) {
+    const epDrop = document.getElementById(`episode-${seriesId}`);
+    if (!epDrop) return;
+    epDrop.innerHTML = "";
+    for (let idx = 1; idx <= 6; idx++) {
+        let nodeOpt = document.createElement('option'); nodeOpt.value = idx; nodeOpt.innerText = `Episode ${idx}`;
+        epDrop.appendChild(nodeOpt);
+    }
+}
+
+// Redirects client inputs across tabs and instantly initializes multi-server scraping sweeps
+function directRouteToStreamTab(contentType, imdbId, season = null, episode = null) {
+    navigateDashboardTabs('stream');
+    const manualLinkInputBox = document.getElementById('manual-magnet-input');
+    if (manualLinkInputBox) manualLinkInputBox.value = "";
+    autoScrapeFromGateways(contentType, imdbId, season, episode);
+}
+
+async function autoScrapeFromGateways(contentType, imdbId, season = null, episode = null) {
     const infoMessageBox = document.getElementById('player-status-message');
     if (!infoMessageBox) return;
     
-    infoMessageBox.className = "status-alert waiting";
-    infoMessageBox.innerText = `Contacting background aggregator plugins... Scanning swarm paths.`;
+    infoMessageBox.className = "ui-notification notification-warn";
+    infoMessageBox.innerText = `Routing parameter hooks to public torrent scraper networks...`;
 
-    fetchCatalogMetadata(imdbId);
+    fetchTargetMetadataRecords(imdbId);
+    updateServerStatusDisplay(); // Execute smart connection indicator updates
 
-    let queryToken = `movie/${imdbId}.json`;
-    if (contentType === "series") {
-        queryToken = `series/${imdbId}:${season}:${episode}.json`;
-    }
+    let lookupToken = `movie/${imdbId}.json`;
+    if (contentType === "series") { lookupToken = `series/${imdbId}:${season}:${episode}.json`; }
 
-    for (let gate of publicScrapeGateways) {
+    for (let gateway of publicScrapeGateways) {
         try {
-            const fetchUrl = `${gate}${queryToken}`;
-            const checkRes = await fetch(fetchUrl);
-            const dataPayload = await checkRes.json();
+            const checkRes = await fetch(`${gateway}${lookupToken}`);
+            const payload = await checkRes.json();
+            if (payload && payload.streams && payload.streams.length > 0) {
+                const targetTrack = payload.streams[0]; // Isolate top stream
+                let resolvedUri = targetTrack.url;
+                if (targetTrack.infoHash) { resolvedUri = `magnet:?xt=urn:btih:${targetTrack.infoHash}`; }
 
-            if (dataPayload && dataPayload.streams && dataPayload.streams.length > 0) {
-                const baselineTargetStream = dataPayload.streams[0];
-                
-                let streamUri = baselineTargetStream.url;
-                if (baselineTargetStream.infoHash) {
-                    streamUri = `magnet:?xt=urn:btih:\${baselineTargetStream.infoHash}`;
-                }
+                if (resolvedUri) {
+                    lastDiscoveredMagnetLink = resolvedUri;
+                    const linkInput = document.getElementById('manual-magnet-input');
+                    if (linkInput) linkInput.value = resolvedUri;
 
-                if (streamUri) {
-                    lastDiscoveredMagnetLink = streamUri;
-                    
-                    infoMessageBox.className = "status-alert running";
-                    infoMessageBox.innerHTML = `
-                        Stream located via plugin! 
-                        <button class="embed-copy-btn" onclick="copyStreamHashToClipboard()">📋 Copy Magnet Link</button>
-                    `;
-                    
-                    executeVideoPipeline(streamUri);
+                    infoMessageBox.className = "ui-notification notification-run";
+                    infoMessageBox.innerHTML = `Active stream pipeline resolved! <button class="embed-copy-btn" onclick="copyStreamHashToClipboard()">📋 Copy Magnet Link</button>`;
+                    executeVideoPipeline(resolvedUri);
                     return;
                 }
             }
-        } catch (e) {
-            console.warn("Plugin query node hop timed out, checking backup path...", e);
-        }
+        } catch (e) { console.warn("Scraper node hop dropped target stream: ", e); }
     }
-    
-    infoMessageBox.className = "status-alert info";
-    infoMessageBox.innerText = "No direct streams answered from this addon node. Try copying a manual magnet link source link.";
+    infoMessageBox.className = "ui-notification notification-neutral";
+    infoMessageBox.innerText = "No pre-configured direct stream paths responded. Paste an active link file manually above.";
 }
 
-function copyStreamHashToClipboard() {
-    if (!lastDiscoveredMagnetLink) {
-        alert("No active magnet reference located inside system memory states.");
-        return;
+// Coordinates live status lights dynamically to reflect real-time link selections
+function updateServerStatusDisplay() {
+    const selectorElement = document.getElementById('server-gateway-selector');
+    const indicatorDot = document.getElementById('active-route-indicator');
+    if (!selectorElement || !indicatorDot) return;
+
+    const selectedOptionNode = selectorElement.options[selectorElement.selectedIndex];
+    const targetStatusColor = selectedOptionNode.getAttribute('data-status') || "green";
+
+    indicatorDot.className = "status-marker-dot"; 
+    if (targetStatusColor === "green") indicatorDot.classList.add('marker-green');
+    if (targetStatusColor === "orange") indicatorDot.classList.add('marker-orange');
+    if (targetStatusColor === "red") indicatorDot.classList.add('marker-red');
+}
+
+// Executes manually selected drop-down switches during active video rendering loops
+function hotSwapActiveStreamServerRoute() {
+    updateServerStatusDisplay();
+    const currentInputMagnet = document.getElementById('manual-magnet-input').value;
+    const msgBox = document.getElementById('player-status-message');
+
+    if (currentInputMagnet && currentInputMagnet.startsWith('magnet:?')) {
+        msgBox.className = "ui-notification notification-warn";
+        msgBox.innerText = "Playback server route hot-swap invoked. Re-establishing secure streaming socket connections...";
+        executeVideoPipeline(currentInputMagnet);
     }
-    
-    navigator.clipboard.writeText(lastDiscoveredMagnetLink).then(() => {
-        alert("Success! Magnet link copied directly to your device clipboard. You can now paste this target into the Safe Download Tunnel tab.");
-    }).catch(err => {
-        console.error("Clipboard routing restriction thrown: ", err);
-    });
 }
 
 function executeVideoPipeline(sourceUri) {
-    const infoMessageBox = document.getElementById('player-status-message');
-    
-    if (torrentEngineClient.torrents.length > 0) {
-        torrentEngineClient.torrents.forEach(t => t.destroy());
-        torrentEngineClient = new WebTorrent();
-    }
+    const targetDiv = document.getElementById('webtor-player-target');
+    const videoNode = document.getElementById('web-video-player');
 
-    if (sourceUri.startsWith('http')) {
-        document.getElementById('web-video-player').src = sourceUri;
-        return;
-    }
-
-    torrentEngineClient.add(sourceUri, function (torrentInstance) {
-        const targetingMediaFile = torrentInstance.files.find(function (fileMetadata) {
-            return fileMetadata.name.endsWith('.mp4') || fileMetadata.name.endsWith('.mkv') || fileMetadata.name.endsWith('.webm');
-        });
-        if (infoMessageBox && targetingMediaFile) {
-            infoMessageBox.innerText = `Streaming Status: Playing live video swarm -> \${targetingMediaFile.name}`;
-        }
-        targetingMediaFile.renderTo('#web-video-player');
-    });
+    targetDiv.innerHTML = "";videoNode.style.display = "none";
+videoNode.src = "";
+if (sourceUri.startsWith('http')) {
+videoNode.style.display = "block";
+videoNode.src = sourceUri;
+return;
 }
-
-async function fetchCatalogMetadata(imdbId) {
-    const cardWrapper = document.getElementById('meta-catalog-card');
-    const titleNode = document.getElementById('meta-title');
-    const descriptionNode = document.getElementById('meta-description');
-    const posterNode = document.getElementById('meta-poster');
-    const castNode = document.getElementById('meta-cast');
-
-    if (!cardWrapper || !titleNode || !descriptionNode || !posterNode || !castNode) return;
-
-    try {
-        const response = await fetch(`https://v3-cinemeta.strem.io/meta/movie/\${imdbId}.json`);
-        const resultData = await response.json();
-
-        if (resultData && resultData.meta) {
-            const movieInfo = resultData.meta;
-            titleNode.innerText = movieInfo.name || "Unknown Title";
-            descriptionNode.innerText = movieInfo.description || "No overview summary layout available for this index record.";
-            posterNode.src = movieInfo.poster || "";
-            if (movieInfo.cast && movieInfo.cast.length > 0) {
-                castNode.innerText = movieInfo.cast.slice(0, 5).join(', ');
-            } else {
-                castNode.innerText = "N/A";
-            }
-            cardWrapper.className = "metadata-card-visible";
-        }
-    } catch (error) {
-        console.error("Metadata Catalog Fetch Pipeline Failure: ", error);
-    }
+if (typeof webtor !== 'undefined') {
+window.webtor = window.webtor || [];
+window.webtor.push({
+id: 'webtor-player-target',
+magnet: sourceUri,
+onready: function(e) { console.log('Cloud tunnel network initialized.'); }
+});
+} else {
+videoNode.style.display = "block";
+if (torrentEngineClient.torrents.length > 0) {
+torrentEngineClient.torrents.forEach(t => t.destroy());
+torrentEngineClient = new WebTorrent();
 }
-
-function startInlineStream() {
-    const inputMagnetLink = document.getElementById('stream-magnet-input').value;
-    const imdbIdValue = document.getElementById('imdb-id-input').value.trim();
-
-    if (!inputMagnetLink || !inputMagnetLink.startsWith('magnet:?')) {
-        alert('Please enter a valid cryptographic movie magnet streaming link.');
-        return;
-    }
-    if (imdbIdValue) { fetchCatalogMetadata(imdbIdValue); }
-    lastDiscoveredMagnetLink = inputMagnetLink;
-    executeVideoPipeline(inputMagnetLink);
+torrentEngineClient.add(sourceUri, function (torrent) {
+const mediaAssetFile = torrent.files.find(f => f.name.endsWith('.mp4') || f.name.endsWith('.mkv'));
+mediaAssetFile.renderTo('#web-video-player');
+});
 }
-
-function triggerSafeDownload() {
-    const sourceLink = document.getElementById('tunnel-magnet-input').value;
-    const syncStatusBox = document.getElementById('download-status-box');
-    if (!syncStatusBox) return;
-    
-    if (!sourceLink || !sourceLink.startsWith('magnet:?')) {
-        alert('Please specify a valid magnet path to process container remuxing.');
-        return;
-    }
-    syncStatusBox.className = "status-alert running";
-    syncStatusBox.innerText = "Tunnel Handshake Confirmed: Server sequential piece caching active. Mapping direct FFmpeg MP4 remux data packet straight to client browser thread...";
-    window.location.href = `http://localhost:5000/api/tunnel-download?magnet=\${encodeURIComponent(sourceLink)}`;
 }
-
+function initializeManualStreamPipeline() {
+const link = document.getElementById('manual-magnet-input').value;
+if (!link.startsWith('magnet:?')) { alert('Please target a valid cryptographically hashed magnet link parameter.'); return; }
+lastDiscoveredMagnetLink = link;
+executeVideoPipeline(link);
+}
+function copyStreamHashToClipboard() {
+if (!lastDiscoveredMagnetLink) return;
+navigator.clipboard.writeText(lastDiscoveredMagnetLink).then(() => {
+alert("Link cached! Switch tabs to 'Safe Download' and paste it inside the processing pipeline tool box.");
+});
+}
+async function fetchTargetMetadataRecords(imdbId) {
+const card = document.getElementById('meta-catalog-card');
+if (!card) return;
+try {
+const response = await fetch(https://strem.io{imdbId}.json);
+const res = await response.json();
+if (res && res.meta) {
+document.getElementById('meta-title').innerText = res.meta.name || "Media File";
+document.getElementById('meta-description').innerText = res.meta.description || "Overview parameters loading...";
+document.getElementById('meta-poster').src = res.meta.poster || "";
+document.getElementById('meta-cast').innerText = res.meta.cast ? res.meta.cast.slice(0, 4).join(', ') : "N/A";
+card.className = "metadata-card-visible";
+}
+} catch (e) { console.error(e); }
+}
+function triggerSafeDownloadTunnelPipeline() {
+const inputLink = document.getElementById('tunnel-magnet-input').value;
+const box = document.getElementById('download-status-box');
+if (!inputLink.startsWith('magnet:?')) { alert('Please declare a functional source link.'); return; }
+box.className = "ui-notification notification-run";
+box.innerText = "Handshake Confirmed: Checking microservice environment instances... Initializing background conversion arrays.";
+const localEndpointUrl = http://localhost:5000/api/tunnel-download?magnet=${encodeURIComponent(inputLink)};
+fetch(http://localhost:5000/api/tunnel-download, { mode: 'no-cors' })
+.then(() => { window.location.href = localEndpointUrl; })
+.catch(() => {
+window.open(https://webtor.io, '_blank');
+box.className = "ui-notification notification-neutral";
+box.innerText = "Local cluster node offline. Relaying stream conversion container rules directly to external processing server configurations.";
+});
+}
 window.onload = function() {
-    loadDiscoverCatalog();
+console.log("METASTREAM Core Engine UI Layer Successfully Connected.");
 };
